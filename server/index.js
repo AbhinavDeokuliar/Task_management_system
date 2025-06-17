@@ -12,6 +12,7 @@ const scheduleJobs = require("./utils/scheduler");
 // Import routes
 const taskRoutes = require("./routes/taskRoutes");
 const userRoutes = require("./routes/userRoutes");
+// Remove setupRoutes - we'll use the script instead
 
 // Initialize express app
 const app = express();
@@ -37,6 +38,7 @@ app.get("/", (req, res) => {
 // Mount routes
 app.use("/api/tasks", taskRoutes);
 app.use("/api/users", userRoutes);
+// Remove setupRoutes - we'll use the script instead
 
 // Error handling middleware (must be after all routes)
 app.use(errorMiddleware);

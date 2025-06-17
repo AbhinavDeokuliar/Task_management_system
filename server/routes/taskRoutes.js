@@ -17,7 +17,9 @@ router.route("/").get(taskController.getAllTasks);
 router
 	.route("/:id")
 	.get(taskController.getTask)
-	.post("/comments", taskController.addComment);
+	.patch(taskController.updateTask);
+
+router.post("/:id/comments", taskController.addComment);
 
 // Admin-only routes
 router.use(authMiddleware.restrictTo("admin"));

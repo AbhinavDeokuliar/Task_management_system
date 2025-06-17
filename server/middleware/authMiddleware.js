@@ -123,19 +123,8 @@ exports.restrictTo = (...roles) => {
 // Authentication controller functions
 exports.signup = async (req, res, next) => {
 	try {
-		// Only admins can create admin users
-		if (
-			req.body.role === "admin" &&
-			(!req.user || req.user.role !== "admin")
-		) {
-			return next(
-				new AppError(
-					"You do not have permission to create admin users",
-					403
-				)
-			);
-		}
-
+		// Remove restriction - admin can create other admins
+		// We'll rely on the restrictTo middleware to ensure only admins access this endpoint
 		const newUser = await User.create({
 			name: req.body.name,
 			email: req.body.email,

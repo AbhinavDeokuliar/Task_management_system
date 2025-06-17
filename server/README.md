@@ -18,6 +18,7 @@ The Task Management System is a comprehensive solution designed to streamline ta
 -  [Security Measures](#security-measures)
 -  [Best Practices](#best-practices)
 -  [Troubleshooting](#troubleshooting)
+-  [Testing Guide](#testing-guide)
 
 ## System Architecture
 
@@ -84,7 +85,7 @@ PORT=5000
 NODE_ENV=development
 
 # MongoDB Connection
-MONGODB_URI=mongodb://localhost:27017/task_management_system
+MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/<database>?retryWrites=true&w=majority
 
 # JWT Authentication
 JWT_SECRET=yourStrongSecretKey
@@ -99,6 +100,18 @@ EMAIL_FROM=Task Management System <your_email@gmail.com>
 # Frontend URL (for email links)
 FRONTEND_URL=http://localhost:3000
 ```
+
+#### Important Email Configuration Notes
+
+-  **EMAIL_SERVICE**: Currently supports 'gmail', but can be configured for other services
+-  **EMAIL_USERNAME**: The full Gmail address used to send notifications
+-  **EMAIL_PASSWORD**:
+   -  For Gmail, use an App Password, not your regular account password
+   -  To generate an App Password:
+      1. Enable 2-Step Verification in your Google Account
+      2. Visit https://myaccount.google.com/apppasswords
+      3. Select "Mail" and your device, then generate and copy the 16-character password
+-  **EMAIL_FROM**: The sender name and email that recipients will see
 
 ### 4. Initialize the Database
 
@@ -120,7 +133,19 @@ npm start
 
 ### 6. Initial Admin User
 
-The first user must be manually created in the database with the 'admin' role. Subsequent users can be created through the API.
+The system requires at least one admin user to function properly. To create the initial admin user, run the provided script:
+
+```bash
+cd task_management_system/server
+node scripts/createAdmin.js
+```
+
+This will create an admin user with the following credentials:
+
+-  Email: admin@example.com
+-  Password: admin123
+
+**Important**: After creating the initial admin, log in and change the default password immediately for security reasons. Once the initial admin is created, additional administrators can be created through the API by existing admin users.
 
 ## Database Schema
 
@@ -290,11 +315,13 @@ All API endpoints are relative to: `http://localhost:5000/api`
    	"name": "New User",
    	"email": "newuser@example.com",
    	"password": "password123",
-   	"role": "team_member",
+   	"role": "team_member", // Can be "admin" or "team_member"
    	"department": "Marketing",
    	"position": "Specialist"
    }
    ```
+-  **Notes**: Admin users can create both regular team members and other admin users
+
 -  **Success Response**:
    ```json
    {
@@ -802,13 +829,13 @@ The system uses JSON Web Tokens (JWT) for stateless authentication:
    -  Task calendar view
 
 3. **Admin-only Routes**: Authentication + Admin role required
-   -  User management
+   -  User management (including creating other admins)
    -  Task creation and deletion
    -  Analytics dashboard
 
 ## Email Notifications
 
-The system automatically sends email notifications for:
+The system automatically sends email notifications for key events:
 
 ### Task Assignment
 
@@ -827,6 +854,16 @@ Automatic reminders are sent 3 days before a task deadline with:
 -  Days remaining until deadline
 -  Current task status
 -  Link to update task
+
+### Email Configuration Notes
+
+-  The email scheduler runs every minute and checks if it's 8:00 AM to send deadline reminders
+-  For the reminder system to work properly:
+   -  Ensure the server is running continuously
+   -  Verify that `EMAIL_USERNAME` and `EMAIL_PASSWORD` are correctly configured
+   -  For Gmail, ensure you're using an App Password if 2FA is enabled
+   -  Tasks must have valid assignees with proper email addresses
+-  For testing notifications, you can modify the `scheduler.js` file to run more frequently
 
 ## Error Handling
 
@@ -900,6 +937,7 @@ All error responses follow a standard format:
 
    -  Check MongoDB connection string
    -  Ensure MongoDB service is running
+   -  Verify network connectivity to MongoDB Atlas if using cloud hosting
 
 2. **Authentication Failures**:
 
@@ -908,14 +946,90 @@ All error responses follow a standard format:
    -  Ensure token is included in Authorization header
 
 3. **Email Sending Failures**:
-   -  Verify email service credentials
-   -  Check for network connectivity issues
-   -  Ensure valid email addresses
+   -  Verify email service credentials in .env file
+   -  For Gmail, confirm App Password is correct and 2FA is enabled on your account
+   -  Check if your email service provider is blocking automated emails
+   -  Look for rate limiting issues with the email provider
 
 ### Logs
 
 -  Server logs are output to the console
 -  In production, consider implementing a logging service
+
+## Testing Guide
+
+### Prerequisites
+
+-  Postman or similar API testing tool
+-  MongoDB Compass (optional, for database inspection)
+
+### Testing Authentication
+
+1. **Login**:
+
+   -  Make a POST request to `/api/users/login` with admin credentials
+   -  Save the JWT token returned in the response
+
+2. **Using the JWT Token**:
+   -  For all subsequent requests, add an Authorization header:
+   ```
+   Authorization: Bearer your_jwt_token
+   ```
+
+### Testing Task Management
+
+1. **Create a Task**:
+
+   -  Login as admin
+   -  Make a POST request to `/api/tasks` with task details
+   -  Include a valid user ID for the `assignedTo` field
+
+2. **Check Email Notifications**:
+
+   -  After creating a task, check the email inbox of the assigned user
+   -  An assignment notification email should be received
+
+3. **Test Deadline Reminders**:
+   -  Create a task with a deadline 1-3 days in the future
+   -  For immediate testing, you can temporarily modify the scheduler.js file:
+   ```javascript
+   // For testing, remove the time check
+   setInterval(async () => {
+   	console.log("Running scheduled deadline reminders check...");
+   	await sendDeadlineReminders();
+   }, 60 * 1000); // Check every minute
+   ```
+   -  Restart the server and wait for the reminder email
+
+### Testing User Management
+
+1. **Create Team Member**:
+
+   -  Login as admin
+   -  Make a POST request to `/api/users` with user details
+   -  Set `role` to "team_member"
+
+2. **Create Another Admin**:
+
+   -  Login as admin
+   -  Make a POST request to `/api/users` with user details
+   -  Set `role` to "admin"
+
+3. **Test Role-Based Access Control**:
+   -  Login as team member
+   -  Try to access admin endpoints like `/api/users` or task creation
+   -  These should return 403 Forbidden errors
+
+### Full Testing Workflow
+
+1. Create admin user with the script
+2. Login as admin
+3. Create team members and other admins
+4. Create tasks and assign them to users
+5. Login as team members to view and update assigned tasks
+6. Check email notifications
+7. Test deadline reminders
+8. Generate and check task statistics (admin only)
 
 ## Deployment
 
