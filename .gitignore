@@ -69,3 +69,4 @@ server/uploads/
 .cache/
 temp/
 tmp/
+credentials.md
