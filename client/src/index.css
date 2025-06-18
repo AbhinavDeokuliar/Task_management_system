@@ -1,1 +1,84 @@
 @import "tailwindcss";
+
+/* Custom styles beyond Tailwind CSS */
+html,
+body {
+	height: 100%;
+}
+
+#root {
+	height: 100%;
+}
+
+/* Transition effects for components */
+.fade-enter {
+	opacity: 0;
+}
+
+.fade-enter-active {
+	opacity: 1;
+	transition: opacity 300ms;
+}
+
+.fade-exit {
+	opacity: 1;
+}
+
+.fade-exit-active {
+	opacity: 0;
+	transition: opacity 300ms;
+}
+
+/* Line clamp utilities (limit text to specific number of lines) */
+.line-clamp-1 {
+	display: -webkit-box;
+	-webkit-line-clamp: 1;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+
+.line-clamp-2 {
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+
+.line-clamp-3 {
+	display: -webkit-box;
+	-webkit-line-clamp: 3;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+
+/* Task priority colors */
+.priority-high {
+	border-left: 3px solid #ef4444;
+}
+
+.priority-medium {
+	border-left: 3px solid #f59e0b;
+}
+
+.priority-low {
+	border-left: 3px solid #10b981;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+}
+
+::-webkit-scrollbar-track {
+	background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+	background: #c4c4c4;
+	border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: #a3a3a3;
+}
