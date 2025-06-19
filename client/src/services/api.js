@@ -61,13 +61,11 @@ export const authService = {
 		return response.data;
 	},
 
-	// Added forgot password functionality (if supported by backend)
 	forgotPassword: async (email) => {
 		const response = await api.post("/users/forgot-password", { email });
 		return response.data;
 	},
 
-	// Added reset password functionality (if supported by backend)
 	resetPassword: async (token, password) => {
 		const response = await api.patch(`/users/reset-password/${token}`, {
 			password,
@@ -168,7 +166,6 @@ export const taskService = {
 		return response.data;
 	},
 
-	// Added functionality to upload attachments (if supported by backend)
 	uploadAttachment: async (taskId, fileData) => {
 		// Create form data for file upload
 		const formData = new FormData();
@@ -186,7 +183,6 @@ export const taskService = {
 		return response.data;
 	},
 
-	// Added functionality to delete attachments (if supported by backend)
 	deleteAttachment: async (taskId, attachmentId) => {
 		const response = await api.delete(
 			`/tasks/${taskId}/attachments/${attachmentId}`
@@ -194,14 +190,13 @@ export const taskService = {
 		return response.data;
 	},
 
-	// Added functionality to get tasks by tag (if supported by backend)
 	getTasksByTag: async (tag) => {
 		const response = await api.get(`/tasks/tags/${tag}`);
 		return response.data;
 	},
 };
 
-// Department services (if supported by backend)
+// Department services
 export const departmentService = {
 	getAllDepartments: async () => {
 		const response = await api.get("/departments");
@@ -239,7 +234,7 @@ export const departmentService = {
 	},
 };
 
-// Notification services (if supported by backend)
+// Notification services
 export const notificationService = {
 	getNotifications: async () => {
 		const response = await api.get("/notifications");
@@ -253,6 +248,48 @@ export const notificationService = {
 
 	markAllAsRead: async () => {
 		const response = await api.patch("/notifications/read-all");
+		return response.data;
+	},
+};
+
+// Analytics services (Admin only)
+export const analyticsService = {
+	getCompletionStats: async (period = "month", count = 6) => {
+		const response = await api.get(
+			`/analytics/completion-stats?period=${period}&count=${count}`
+		);
+		return response.data;
+	},
+
+	getWorkloadDistribution: async () => {
+		const response = await api.get("/analytics/workload-distribution");
+		return response.data;
+	},
+
+	getDepartmentPerformance: async () => {
+		const response = await api.get("/analytics/department-performance");
+		return response.data;
+	},
+
+	getTaskTrends: async (period = "week", count = 12) => {
+		const response = await api.get(
+			`/analytics/task-trends?period=${period}&count=${count}`
+		);
+		return response.data;
+	},
+
+	getUserPerformance: async () => {
+		const response = await api.get("/analytics/user-performance");
+		return response.data;
+	},
+
+	getPriorityDistribution: async () => {
+		const response = await api.get("/analytics/priority-distribution");
+		return response.data;
+	},
+
+	getOverdueAnalysis: async () => {
+		const response = await api.get("/analytics/overdue-analysis");
 		return response.data;
 	},
 };
