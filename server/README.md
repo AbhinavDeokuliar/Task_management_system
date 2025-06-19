@@ -804,6 +804,311 @@ All API endpoints are relative to: `http://localhost:5000/api`
    }
    ```
 
+### Analytics Endpoints (Admin Only)
+
+#### Get Task Completion Statistics
+
+-  **URL**: `/analytics/completion-stats`
+-  **Method**: `GET`
+-  **Authentication**: JWT Token with admin role required
+-  **Query Parameters**:
+   -  `period`: Time grouping ('day', 'week', 'month')
+   -  `count`: Number of periods to include (default: 6)
+-  **Success Response**:
+   ```json
+   {
+   	"status": "success",
+   	"data": {
+   		"period": "month",
+   		"stats": [
+   			{
+   				"_id": "2025-01",
+   				"count": 5
+   			},
+   			{
+   				"_id": "2025-02",
+   				"count": 8
+   			},
+   			{
+   				"_id": "2025-03",
+   				"count": 12
+   			}
+   		]
+   	}
+   }
+   ```
+
+#### Get Team Workload Distribution
+
+-  **URL**: `/analytics/workload-distribution`
+-  **Method**: `GET`
+-  **Authentication**: JWT Token with admin role required
+-  **Success Response**:
+   ```json
+   {
+   	"status": "success",
+   	"results": 2,
+   	"data": {
+   		"workload": [
+   			{
+   				"_id": "user_id_1",
+   				"totalTasks": 7,
+   				"highPriority": 2,
+   				"mediumPriority": 3,
+   				"lowPriority": 2,
+   				"averageCompletionTime": 3.5,
+   				"userName": "Team Member 1",
+   				"department": "Development"
+   			},
+   			{
+   				"_id": "user_id_2",
+   				"totalTasks": 5,
+   				"highPriority": 1,
+   				"mediumPriority": 3,
+   				"lowPriority": 1,
+   				"averageCompletionTime": 2.8,
+   				"userName": "Team Member 2",
+   				"department": "Design"
+   			}
+   		]
+   	}
+   }
+   ```
+
+#### Get Department Performance
+
+-  **URL**: `/analytics/department-performance`
+-  **Method**: `GET`
+-  **Authentication**: JWT Token with admin role required
+-  **Success Response**:
+   ```json
+   {
+   	"status": "success",
+   	"data": {
+   		"departments": {
+   			"Development": {
+   				"total": 15,
+   				"completed": 8,
+   				"pending": 3,
+   				"in_progress": 4,
+   				"archived": 0,
+   				"onTime": 6,
+   				"overdue": 2,
+   				"averageCompletionTime": 4.2
+   			},
+   			"Design": {
+   				"total": 12,
+   				"completed": 7,
+   				"pending": 2,
+   				"in_progress": 3,
+   				"archived": 0,
+   				"onTime": 5,
+   				"overdue": 2,
+   				"averageCompletionTime": 5.1
+   			}
+   		}
+   	}
+   }
+   ```
+
+#### Get Task Trends
+
+-  **URL**: `/analytics/task-trends`
+-  **Method**: `GET`
+-  **Authentication**: JWT Token with admin role required
+-  **Query Parameters**:
+   -  `period`: Time grouping ('day', 'week', 'month')
+   -  `count`: Number of periods to include (default: 12)
+-  **Success Response**:
+   ```json
+   {
+   	"status": "success",
+   	"data": {
+   		"period": "week",
+   		"created": [
+   			{
+   				"_id": "2025-W01",
+   				"count": 7
+   			},
+   			{
+   				"_id": "2025-W02",
+   				"count": 5
+   			}
+   		],
+   		"completed": [
+   			{
+   				"_id": "2025-W01",
+   				"count": 3
+   			},
+   			{
+   				"_id": "2025-W02",
+   				"count": 6
+   			}
+   		]
+   	}
+   }
+   ```
+
+#### Get User Performance Metrics
+
+-  **URL**: `/analytics/user-performance`
+-  **Method**: `GET`
+-  **Authentication**: JWT Token with admin role required
+-  **Success Response**:
+   ```json
+   {
+   	"status": "success",
+   	"results": 2,
+   	"data": {
+   		"performance": [
+   			{
+   				"userId": "user_id_1",
+   				"name": "Team Member 1",
+   				"department": "Development",
+   				"position": "Developer",
+   				"tasksCompleted": 15,
+   				"onTimePercentage": 86.7,
+   				"averageCompletionSpeed": -0.8
+   			},
+   			{
+   				"userId": "user_id_2",
+   				"name": "Team Member 2",
+   				"department": "Design",
+   				"position": "UI Designer",
+   				"tasksCompleted": 12,
+   				"onTimePercentage": 75.0,
+   				"averageCompletionSpeed": 1.2
+   			}
+   		]
+   	}
+   }
+   ```
+
+#### Get Task Priority Distribution
+
+-  **URL**: `/analytics/priority-distribution`
+-  **Method**: `GET`
+-  **Authentication**: JWT Token with admin role required
+-  **Success Response**:
+   ```json
+   {
+   	"status": "success",
+   	"data": {
+   		"distribution": [
+   			{
+   				"_id": "high",
+   				"total": 15,
+   				"statusBreakdown": [
+   					{
+   						"status": "pending",
+   						"count": 3
+   					},
+   					{
+   						"status": "in_progress",
+   						"count": 4
+   					},
+   					{
+   						"status": "completed",
+   						"count": 8
+   					}
+   				]
+   			},
+   			{
+   				"_id": "medium",
+   				"total": 22,
+   				"statusBreakdown": [
+   					{
+   						"status": "pending",
+   						"count": 7
+   					},
+   					{
+   						"status": "in_progress",
+   						"count": 8
+   					},
+   					{
+   						"status": "completed",
+   						"count": 7
+   					}
+   				]
+   			},
+   			{
+   				"_id": "low",
+   				"total": 13,
+   				"statusBreakdown": [
+   					{
+   						"status": "pending",
+   						"count": 4
+   					},
+   					{
+   						"status": "in_progress",
+   						"count": 3
+   					},
+   					{
+   						"status": "completed",
+   						"count": 6
+   					}
+   				]
+   			}
+   		]
+   	}
+   }
+   ```
+
+#### Get Overdue Tasks Analysis
+
+-  **URL**: `/analytics/overdue-analysis`
+-  **Method**: `GET`
+-  **Authentication**: JWT Token with admin role required
+-  **Success Response**:
+   ```json
+   {
+   	"status": "success",
+   	"data": {
+   		"totalOverdue": 8,
+   		"departments": {
+   			"Development": {
+   				"count": 5,
+   				"highPriority": 2,
+   				"mediumPriority": 2,
+   				"lowPriority": 1,
+   				"averageOverdueDays": 4.6
+   			},
+   			"Design": {
+   				"count": 3,
+   				"highPriority": 1,
+   				"mediumPriority": 2,
+   				"lowPriority": 0,
+   				"averageOverdueDays": 3.3
+   			}
+   		},
+   		"users": [
+   			{
+   				"userId": "user_id_1",
+   				"userName": "Team Member 1",
+   				"department": "Development",
+   				"count": 3,
+   				"tasks": [
+   					{
+   						"taskId": "task_id_1",
+   						"title": "Fix login bug",
+   						"priority": "high",
+   						"deadline": "2025-06-01T00:00:00.000Z",
+   						"overdueDays": 5
+   					},
+   					{
+   						"taskId": "task_id_2",
+   						"title": "Implement file upload",
+   						"priority": "medium",
+   						"deadline": "2025-06-03T00:00:00.000Z",
+   						"overdueDays": 3
+   					}
+   				]
+   			}
+   		]
+   	}
+   }
+   ```
+
 ## Authentication & Authorization
 
 ### JWT Authentication

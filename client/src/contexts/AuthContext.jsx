@@ -1,4 +1,5 @@
 import { createContext, useState, useContext, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 // Create context
 const AuthContext = createContext();
@@ -26,6 +27,9 @@ export const AuthProvider = ({ children }) => {
         setLoading(false);
     }, []);
 
+    // Derived property to check if user is admin
+    const isAdmin = currentUser?.role === 'admin';
+
     // Login function - update context state with user info
     const login = async (userData) => {
         // Make sure we have valid user data
@@ -45,19 +49,29 @@ export const AuthProvider = ({ children }) => {
         // Remove from localStorage
         localStorage.removeItem('user');
         localStorage.removeItem('token');
+
+        // Navigation will be handled by the component calling this function
+    };
+
+    // Get appropriate homepage based on user role
+    const getHomePage = () => {
+        if (!currentUser) return '/login';
+        return isAdmin ? '/admin/dashboard' : '/dashboard';
     };
 
     // Context value
     const value = {
         currentUser,
+        isAdmin,
         login,
         logout,
-        loading
+        loading,
+        getHomePage
     };
 
     return (
         <AuthContext.Provider value={value}>
-            {!loading && children}
+            {children}
         </AuthContext.Provider>
     );
 };
