@@ -43,13 +43,33 @@ api.interceptors.response.use(
 // Auth services
 export const authService = {
 	login: async (email, password) => {
-		const response = await api.post("/users/login", { email, password });
-		return response.data;
+		try {
+			const response = await api.post("/users/login", { email, password });
+			console.log("API login response:", response.data); // Add this to debug
+			return response.data;
+		} catch (error) {
+			console.error("Login API error:", error);
+			throw error;
+		}
 	},
 
 	updatePassword: async (currentPassword, password) => {
 		const response = await api.patch("/users/update-password", {
 			currentPassword,
+			password,
+		});
+		return response.data;
+	},
+
+	// Added forgot password functionality (if supported by backend)
+	forgotPassword: async (email) => {
+		const response = await api.post("/users/forgot-password", { email });
+		return response.data;
+	},
+
+	// Added reset password functionality (if supported by backend)
+	resetPassword: async (token, password) => {
+		const response = await api.patch(`/users/reset-password/${token}`, {
 			password,
 		});
 		return response.data;
@@ -145,6 +165,94 @@ export const taskService = {
 
 	getTaskStats: async () => {
 		const response = await api.get("/tasks/stats");
+		return response.data;
+	},
+
+	// Added functionality to upload attachments (if supported by backend)
+	uploadAttachment: async (taskId, fileData) => {
+		// Create form data for file upload
+		const formData = new FormData();
+		formData.append("file", fileData);
+
+		const response = await api.post(
+			`/tasks/${taskId}/attachments`,
+			formData,
+			{
+				headers: {
+					"Content-Type": "multipart/form-data",
+				},
+			}
+		);
+		return response.data;
+	},
+
+	// Added functionality to delete attachments (if supported by backend)
+	deleteAttachment: async (taskId, attachmentId) => {
+		const response = await api.delete(
+			`/tasks/${taskId}/attachments/${attachmentId}`
+		);
+		return response.data;
+	},
+
+	// Added functionality to get tasks by tag (if supported by backend)
+	getTasksByTag: async (tag) => {
+		const response = await api.get(`/tasks/tags/${tag}`);
+		return response.data;
+	},
+};
+
+// Department services (if supported by backend)
+export const departmentService = {
+	getAllDepartments: async () => {
+		const response = await api.get("/departments");
+		return response.data;
+	},
+
+	getDepartment: async (id) => {
+		const response = await api.get(`/departments/${id}`);
+		return response.data;
+	},
+
+	createDepartment: async (departmentData) => {
+		const response = await api.post("/departments", departmentData);
+		return response.data;
+	},
+
+	updateDepartment: async (id, departmentData) => {
+		const response = await api.patch(`/departments/${id}`, departmentData);
+		return response.data;
+	},
+
+	deleteDepartment: async (id) => {
+		const response = await api.delete(`/departments/${id}`);
+		return response.data;
+	},
+
+	getDepartmentUsers: async (id) => {
+		const response = await api.get(`/departments/${id}/users`);
+		return response.data;
+	},
+
+	getDepartmentTasks: async (id) => {
+		const response = await api.get(`/departments/${id}/tasks`);
+		return response.data;
+	},
+};
+
+// Notification services (if supported by backend)
+export const notificationService = {
+	getNotifications: async () => {
+		const response = await api.get("/notifications");
+		return response.data;
+	},
+
+	markAsRead: async (id) => {
+		const response = await api.patch(`/notifications/${id}/read`);
+		return response.data;
+	},
+
+	markAllAsRead: async () => {
+		const response = await api.patch("/notifications/read-all");
 		return response.data;
 	},
 };

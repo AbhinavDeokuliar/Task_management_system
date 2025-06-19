@@ -1,50 +1,55 @@
 import { createContext, useState, useContext, useEffect } from 'react';
 
-const AuthContext = createContext(null);
+// Create context
+const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
+    // State to hold user information
     const [currentUser, setCurrentUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    // Check if user is logged in (from localStorage or sessionStorage)
+    // Check if user is already logged in (on page refresh/initial load)
     useEffect(() => {
+        // Get user from localStorage
         const storedUser = localStorage.getItem('user');
         if (storedUser) {
-            setCurrentUser(JSON.parse(storedUser));
+            try {
+                // Parse stored user data
+                const userObject = JSON.parse(storedUser);
+                setCurrentUser(userObject);
+            } catch (error) {
+                console.error("Failed to parse stored user data:", error);
+                localStorage.removeItem('user');
+                localStorage.removeItem('token');
+            }
         }
         setLoading(false);
     }, []);
 
-    // Mock login function - replace with actual API call
-    const login = async (email, password) => {
-        try {
-            // This would be an API call in a real application
-            const mockResponse = {
-                id: '1',
-                name: email.includes('admin') ? 'Admin User' : 'Team Member',
-                email,
-                role: email.includes('admin') ? 'admin' : 'team_member',
-                token: 'mock-jwt-token'
-            };
-
-            setCurrentUser(mockResponse);
-            localStorage.setItem('user', JSON.stringify(mockResponse));
-            return mockResponse;
-        } catch (error) {
-            console.error('Login error:', error);
-            throw new Error('Invalid credentials');
+    // Login function - update context state with user info
+    const login = async (userData) => {
+        // Make sure we have valid user data
+        if (!userData || typeof userData !== 'object') {
+            throw new Error('Invalid user data provided');
         }
+
+        setCurrentUser(userData);
+        return userData;
     };
 
-    // Logout function
+    // Logout function - clear user data
     const logout = () => {
+        // Remove from context
         setCurrentUser(null);
+
+        // Remove from localStorage
         localStorage.removeItem('user');
+        localStorage.removeItem('token');
     };
 
+    // Context value
     const value = {
         currentUser,
-        isAdmin: currentUser?.role === 'admin',
         login,
         logout,
         loading
@@ -57,6 +62,7 @@ export const AuthProvider = ({ children }) => {
     );
 };
 
+// Custom hook to use auth context
 export const useAuth = () => {
     return useContext(AuthContext);
 };
