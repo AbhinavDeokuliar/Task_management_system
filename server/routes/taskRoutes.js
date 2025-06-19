@@ -11,25 +11,20 @@ router.use(authMiddleware.protect);
 
 // Routes accessible by both admin and team members
 router.get("/calendar", taskController.getTasksForCalendar);
-
 router.route("/").get(taskController.getAllTasks);
 
+// Admin-only routes - specific endpoints first
+router.use(authMiddleware.restrictTo("admin"));
+router.get("/stats", taskController.getTaskStats);
+router.route("/").post(taskController.createTask);
+
+// ID routes for comments
+router.post("/:id/comments", taskController.addComment);
+
+// ID routes for tasks
 router
 	.route("/:id")
 	.get(taskController.getTask)
-	.patch(taskController.updateTask);
-
-router.post("/:id/comments", taskController.addComment);
-
-// Admin-only routes
-router.use(authMiddleware.restrictTo("admin"));
-
-router.get("/stats", taskController.getTaskStats);
-
-router.route("/").post(taskController.createTask);
-
-router
-	.route("/:id")
 	.patch(taskController.updateTask)
 	.delete(taskController.deleteTask);
 
