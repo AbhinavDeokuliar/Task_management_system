@@ -1,9 +1,13 @@
 import { useState, useEffect } from 'react';
+import Modal from '../../components/common/Modal';
+import Loading from '../../components/common/Loading';
+import UserForm from '../../components/forms/UserForm';
 
 const UserManagement = () => {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
+    const [animate, setAnimate] = useState(false);
 
     // Fetch users - in a real app, this would be an API call
     useEffect(() => {
@@ -46,104 +50,127 @@ const UserManagement = () => {
                 console.error('Error fetching users:', error);
             } finally {
                 setLoading(false);
+                setTimeout(() => setAnimate(true), 100);
             }
         };
 
         fetchUsers();
     }, []);
 
+    const handleAddUser = (userData) => {
+        console.log('Adding user:', userData);
+        // In a real app, this would call an API endpoint
+        setShowModal(false);
+    };
+
     if (loading) {
-        return <div className="h-full flex items-center justify-center">Loading users...</div>;
+        return <Loading message="Loading users" />;
     }
 
     return (
-        <div className="container mx-auto px-4 py-6">
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-3xl font-bold">User Management</h1>
-                <button
-                    onClick={() => setShowModal(true)}
-                    className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700"
-                >
-                    Add User
-                </button>
-            </div>
+        <div className="container mx-auto px-4 py-6 relative">
+            {/* Decorative elements */}
+            <div className="absolute top-10 left-1/4 w-3 h-3 bg-indigo-500 rounded-full opacity-30 animate-float"></div>
+            <div className="absolute bottom-10 right-1/4 w-2 h-2 bg-purple-400 rounded-full opacity-20 animate-float-delayed"></div>
 
-            <div className="bg-white shadow-md rounded-lg overflow-hidden">
-                <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                        <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                        {users.map((user) => (
-                            <tr key={user.id} className="hover:bg-gray-50">
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="flex items-center">
-                                        <div className="flex-shrink-0 h-10 w-10 bg-indigo-100 rounded-full flex items-center justify-center">
-                                            <span className="text-indigo-700 font-medium">{user.name.charAt(0)}</span>
-                                        </div>
-                                        <div className="ml-4">
-                                            <div className="text-sm font-medium text-gray-900">{user.name}</div>
-                                            <div className="text-sm text-gray-500">{user.position}</div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {user.email}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${user.role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
-                                        }`}>
-                                        {user.role === 'admin' ? 'Admin' : 'Team Member'}
-                                    </span>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {user.department}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${user.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                                        }`}>
-                                        {user.active ? 'Active' : 'Inactive'}
-                                    </span>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <button className="text-indigo-600 hover:text-indigo-900 mr-3">Edit</button>
-                                    <button className="text-red-600 hover:text-red-900">
-                                        {user.active ? 'Deactivate' : 'Activate'}
-                                    </button>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
+            <div className={`transition-all duration-700 transform ${animate ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+                <div className="flex justify-between items-center mb-6">
+                    <h1 className="text-3xl font-bold text-white">
+                        <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-500">
+                            User Management
+                        </span>
+                    </h1>
+                    <button
+                        onClick={() => setShowModal(true)}
+                        className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-2 rounded-md hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg flex items-center"
+                    >
+                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                        Add User
+                    </button>
+                </div>
 
-            {/* Modal placeholder - would be implemented as a separate component */}
-            {showModal && (
-                <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-75">
-                    <div className="bg-white p-8 rounded-lg w-full max-w-md">
-                        <h2 className="text-xl font-bold mb-4">Add New User</h2>
-                        <p>User creation form would go here</p>
-                        <div className="mt-6 flex justify-end">
-                            <button
-                                onClick={() => setShowModal(false)}
-                                className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 mr-2"
-                            >
-                                Cancel
-                            </button>
-                            <button className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">
-                                Create
-                            </button>
-                        </div>
+                <div className="bg-gradient-to-b from-gray-800 to-gray-900 shadow-lg rounded-lg overflow-hidden border border-indigo-500/30">
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-700">
+                            <thead className="bg-gray-900/50">
+                                <tr>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-indigo-300 uppercase tracking-wider">Name</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-indigo-300 uppercase tracking-wider">Email</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-indigo-300 uppercase tracking-wider">Role</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-indigo-300 uppercase tracking-wider">Department</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-indigo-300 uppercase tracking-wider">Status</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-indigo-300 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-700">
+                                {users.map((user, index) => (
+                                    <tr
+                                        key={user.id}
+                                        className="hover:bg-gray-800/50 transition-colors duration-150"
+                                        style={{ animationDelay: `${index * 100}ms` }}
+                                    >
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="flex items-center">
+                                                <div className="flex-shrink-0 h-10 w-10 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-full flex items-center justify-center text-white shadow-md border border-indigo-400/30">
+                                                    <span className="font-medium">{user.name.charAt(0)}</span>
+                                                </div>
+                                                <div className="ml-4">
+                                                    <div className="text-sm font-medium text-white">{user.name}</div>
+                                                    <div className="text-sm text-gray-400">{user.position}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                                            {user.email}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                                ${user.role === 'admin'
+                                                    ? 'bg-purple-900/50 text-purple-300 border border-purple-500/30'
+                                                    : 'bg-blue-900/50 text-blue-300 border border-blue-500/30'}`}>
+                                                {user.role === 'admin' ? 'Admin' : 'Team Member'}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                                            {user.department}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                                ${user.active
+                                                    ? 'bg-green-900/50 text-green-300 border border-green-500/30'
+                                                    : 'bg-red-900/50 text-red-300 border border-red-500/30'}`}>
+                                                {user.active ? 'Active' : 'Inactive'}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                            <button className="text-indigo-400 hover:text-indigo-300 hover:underline transition-colors duration-150 mr-3">
+                                                Edit
+                                            </button>
+                                            <button className={`${user.active ? 'text-red-400 hover:text-red-300' : 'text-green-400 hover:text-green-300'} hover:underline transition-colors duration-150`}>
+                                                {user.active ? 'Deactivate' : 'Activate'}
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-            )}
+            </div>
+
+            <Modal
+                isOpen={showModal}
+                onClose={() => setShowModal(false)}
+                title="Add New User"
+                size="md"
+            >
+                <UserForm
+                    onSubmit={handleAddUser}
+                    onCancel={() => setShowModal(false)}
+                />
+            </Modal>
         </div>
     );
 };

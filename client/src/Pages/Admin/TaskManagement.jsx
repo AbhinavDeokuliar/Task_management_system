@@ -1,9 +1,15 @@
 import { useState, useEffect } from 'react';
+import Modal from '../../components/common/Modal';
+import Loading from '../../components/common/Loading';
+import TaskForm from '../../components/forms/TaskForm';
+import StatusBadge from '../../components/common/StatusBadge';
+import PriorityBadge from '../../components/common/PriorityBadge';
 
 const TaskManagement = () => {
     const [tasks, setTasks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
+    const [animate, setAnimate] = useState(false);
 
     // Fetch tasks - in a real app, this would be an API call
     useEffect(() => {
@@ -43,118 +49,119 @@ const TaskManagement = () => {
                 console.error('Error fetching tasks:', error);
             } finally {
                 setLoading(false);
+                setTimeout(() => setAnimate(true), 100);
             }
         };
 
         fetchTasks();
     }, []);
 
+    const handleAddTask = (taskData) => {
+        console.log('Creating task:', taskData);
+        // In a real app, this would call an API endpoint
+        setShowModal(false);
+    };
+
+    const formatDate = (dateString) => {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
+    };
+
     if (loading) {
-        return <div className="h-full flex items-center justify-center">Loading tasks...</div>;
+        return <Loading message="Loading tasks" />;
     }
 
-    const getPriorityClass = (priority) => {
-        switch (priority) {
-            case 'high':
-                return 'bg-red-100 text-red-800';
-            case 'medium':
-                return 'bg-yellow-100 text-yellow-800';
-            case 'low':
-                return 'bg-green-100 text-green-800';
-            default:
-                return 'bg-gray-100 text-gray-800';
-        }
-    };
-
-    const getStatusClass = (status) => {
-        switch (status) {
-            case 'completed':
-                return 'bg-green-100 text-green-800';
-            case 'in_progress':
-                return 'bg-blue-100 text-blue-800';
-            case 'pending':
-                return 'bg-yellow-100 text-yellow-800';
-            default:
-                return 'bg-gray-100 text-gray-800';
-        }
-    };
-
     return (
-        <div className="container mx-auto px-4 py-6">
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-3xl font-bold">Task Management</h1>
-                <button
-                    onClick={() => setShowModal(true)}
-                    className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700"
-                >
-                    Create Task
-                </button>
-            </div>
+        <div className="container mx-auto px-4 py-6 relative">
+            {/* Decorative elements */}
+            <div className="absolute top-20 right-1/4 w-3 h-3 bg-purple-500 rounded-full opacity-30 animate-float-slow"></div>
+            <div className="absolute bottom-20 left-1/4 w-2 h-2 bg-indigo-400 rounded-full opacity-20 animate-float"></div>
 
-            <div className="bg-white shadow-md rounded-lg overflow-hidden">
-                <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                        <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Task</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priority</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assignee</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Deadline</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                        {tasks.map((task) => (
-                            <tr key={task.id} className="hover:bg-gray-50">
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="text-sm font-medium text-gray-900">{task.title}</div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusClass(task.status)}`}>
-                                        {task.status}
-                                    </span>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getPriorityClass(task.priority)}`}>
-                                        {task.priority}
-                                    </span>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {task.assignee}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {task.deadline}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <button className="text-indigo-600 hover:text-indigo-900 mr-3">Edit</button>
-                                    <button className="text-red-600 hover:text-red-900">Delete</button>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
+            <div className={`transition-all duration-700 transform ${animate ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+                <div className="flex justify-between items-center mb-6">
+                    <h1 className="text-3xl font-bold text-white">
+                        <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-500">
+                            Task Management
+                        </span>
+                    </h1>
+                    <button
+                        onClick={() => setShowModal(true)}
+                        className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-2 rounded-md hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg flex items-center"
+                    >
+                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                        Create Task
+                    </button>
+                </div>
 
-            {/* Modal placeholder - would be implemented as a separate component */}
-            {showModal && (
-                <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-75">
-                    <div className="bg-white p-8 rounded-lg w-full max-w-md">
-                        <h2 className="text-xl font-bold mb-4">Create New Task</h2>
-                        <p>Task creation form would go here</p>
-                        <div className="mt-6 flex justify-end">
-                            <button
-                                onClick={() => setShowModal(false)}
-                                className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 mr-2"
-                            >
-                                Cancel
-                            </button>
-                            <button className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">
-                                Create
-                            </button>
-                        </div>
+                <div className="bg-gradient-to-b from-gray-800 to-gray-900 shadow-lg rounded-lg overflow-hidden border border-indigo-500/30">
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-700">
+                            <thead className="bg-gray-900/50">
+                                <tr>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-indigo-300 uppercase tracking-wider">Task</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-indigo-300 uppercase tracking-wider">Status</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-indigo-300 uppercase tracking-wider">Priority</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-indigo-300 uppercase tracking-wider">Assignee</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-indigo-300 uppercase tracking-wider">Deadline</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-indigo-300 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-700">
+                                {tasks.map((task, index) => (
+                                    <tr
+                                        key={task.id}
+                                        className="hover:bg-gray-800/50 transition-colors duration-150"
+                                        style={{ animationDelay: `${index * 100}ms` }}
+                                    >
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="text-sm font-medium text-white hover:text-indigo-300 cursor-pointer transition-colors">{task.title}</div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <StatusBadge status={task.status} />
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <PriorityBadge priority={task.priority} />
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                                            {task.assignee}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                                            {formatDate(task.deadline)}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                            <button className="text-indigo-400 hover:text-indigo-300 hover:underline transition-colors duration-150 mr-3">
+                                                Edit
+                                            </button>
+                                            <button className="text-red-400 hover:text-red-300 hover:underline transition-colors duration-150">
+                                                Delete
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-            )}
+            </div>
+
+            <Modal
+                isOpen={showModal}
+                onClose={() => setShowModal(false)}
+                title="Create New Task"
+                size="md"
+            >
+                <TaskForm
+                    onSubmit={handleAddTask}
+                    onCancel={() => setShowModal(false)}
+                />
+            </Modal>
         </div>
     );
 };
