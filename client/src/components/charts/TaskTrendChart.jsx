@@ -1,85 +1,91 @@
-import { Line } from 'react-chartjs-2';
+import React from 'react';
 import {
-    Chart as ChartJS,
-    CategoryScale,
-    LinearScale,
-    PointElement,
-    LineElement,
-    Title,
+    ResponsiveContainer,
+    LineChart,
+    Line,
+    XAxis,
+    YAxis,
+    CartesianGrid,
     Tooltip,
     Legend
-} from 'chart.js';
+} from 'recharts';
 
-// Register required Chart.js components
-ChartJS.register(
-    CategoryScale,
-    LinearScale,
-    PointElement,
-    LineElement,
-    Title,
-    Tooltip,
-    Legend
-);
+const TaskTrendChart = ({ trendData }) => {
+    // Handle empty or invalid data
+    if (!trendData || !Array.isArray(trendData) || trendData.length === 0) {
+        return (
+            <div className="h-full flex items-center justify-center">
+                <p className="text-gray-400">No trend data available</p>
+            </div>
+        );
+    }
 
-const TaskTrendChart = ({ trendData = [] }) => {
-    // Default data if none provided
-    const defaultData = [
-        { month: 'Jan', completed: 5, created: 8 },
-        { month: 'Feb', completed: 7, created: 6 },
-        { month: 'Mar', completed: 10, created: 9 },
-        { month: 'Apr', completed: 8, created: 12 },
-        { month: 'May', completed: 12, created: 10 },
-        { month: 'Jun', completed: 14, created: 11 }
-    ];
-
-    const chartData = trendData.length > 0 ? trendData : defaultData;
-
-    const data = {
-        labels: chartData.map(item => item.month),
-        datasets: [
-            {
-                label: 'Tasks Created',
-                data: chartData.map(item => item.created),
-                borderColor: 'rgba(54, 162, 235, 1)',
-                backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                tension: 0.3,
-            },
-            {
-                label: 'Tasks Completed',
-                data: chartData.map(item => item.completed),
-                borderColor: 'rgba(75, 192, 192, 1)',
-                backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                tension: 0.3,
-            }
-        ]
-    };
-
-    const options = {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-            y: {
-                beginAtZero: true,
-                ticks: {
-                    precision: 0
-                }
-            }
-        },
-        plugins: {
-            legend: {
-                position: 'bottom',
-            },
-            tooltip: {
-                mode: 'index',
-                intersect: false,
-            },
-        },
+    // Custom tooltip to make it look better
+    const CustomTooltip = ({ active, payload, label }) => {
+        if (active && payload && payload.length) {
+            return (
+                <div className="bg-gray-800 border border-indigo-500/30 p-3 rounded-md shadow-lg">
+                    <p className="text-sm font-medium text-white mb-2">{label}</p>
+                    {payload.map((entry, index) => (
+                        <p key={`item-${index}`} style={{ color: entry.color }} className="text-xs flex justify-between">
+                            <span>{entry.name}: </span>
+                            <span className="font-medium ml-4">{entry.value}</span>
+                        </p>
+                    ))}
+                </div>
+            );
+        }
+        return null;
     };
 
     return (
-        <div style={{ height: '300px' }}>
-            <Line data={data} options={options} />
-        </div>
+        <ResponsiveContainer width="100%" height="100%">
+            <LineChart
+                data={trendData}
+                margin={{
+                    top: 5,
+                    right: 30,
+                    left: 5,
+                    bottom: 5,
+                }}
+            >
+                <CartesianGrid strokeDasharray="3 3" stroke="#444" />
+                <XAxis
+                    dataKey="month"
+                    tick={{ fill: '#bbb' }}
+                    axisLine={{ stroke: '#666' }}
+                />
+                <YAxis
+                    tick={{ fill: '#bbb' }}
+                    axisLine={{ stroke: '#666' }}
+                    allowDecimals={false}
+                    domain={[0, 'auto']}
+                />
+                <Tooltip content={<CustomTooltip />} />
+                <Legend
+                    wrapperStyle={{ color: '#e2e8f0' }}
+                    verticalAlign="top"
+                />
+                <Line
+                    type="monotone"
+                    dataKey="created"
+                    name="Tasks Created"
+                    stroke="#8b5cf6"
+                    strokeWidth={2}
+                    activeDot={{ r: 6 }}
+                    dot={{ stroke: '#8b5cf6', strokeWidth: 2, r: 4, fill: '#1f2937' }}
+                />
+                <Line
+                    type="monotone"
+                    dataKey="completed"
+                    name="Tasks Completed"
+                    stroke="#10b981"
+                    strokeWidth={2}
+                    activeDot={{ r: 6 }}
+                    dot={{ stroke: '#10b981', strokeWidth: 2, r: 4, fill: '#1f2937' }}
+                />
+            </LineChart>
+        </ResponsiveContainer>
     );
 };
 

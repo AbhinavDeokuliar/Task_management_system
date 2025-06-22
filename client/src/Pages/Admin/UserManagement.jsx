@@ -2,52 +2,32 @@ import { useState, useEffect } from 'react';
 import Modal from '../../components/common/Modal';
 import Loading from '../../components/common/Loading';
 import UserForm from '../../components/forms/UserForm';
+import { userService } from '../../services/api';
+import { toast } from 'react-toastify';
 
 const UserManagement = () => {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [animate, setAnimate] = useState(false);
+    const [selectedUser, setSelectedUser] = useState(null);
+    const [isEditMode, setIsEditMode] = useState(false);
 
-    // Fetch users - in a real app, this would be an API call
+    // Fetch users from the API
     useEffect(() => {
         const fetchUsers = async () => {
             try {
-                // Simulate API call
-                await new Promise(resolve => setTimeout(resolve, 800));
-
-                // Mock data
-                setUsers([
-                    {
-                        id: '1',
-                        name: 'John Doe',
-                        email: 'john@example.com',
-                        role: 'admin',
-                        department: 'Management',
-                        position: 'Project Manager',
-                        active: true
-                    },
-                    {
-                        id: '2',
-                        name: 'Jane Smith',
-                        email: 'jane@example.com',
-                        role: 'team_member',
-                        department: 'Development',
-                        position: 'Frontend Developer',
-                        active: true
-                    },
-                    {
-                        id: '3',
-                        name: 'Robert Johnson',
-                        email: 'robert@example.com',
-                        role: 'team_member',
-                        department: 'Development',
-                        position: 'Backend Developer',
-                        active: false
-                    }
-                ]);
+                setLoading(true);
+                const response = await userService.getAllUsers();
+                // Make sure we're getting the data in the expected structure
+                if (response.status === 'success' && response.data.users) {
+                    setUsers(response.data.users);
+                } else {
+                    throw new Error('Invalid response format');
+                }
             } catch (error) {
                 console.error('Error fetching users:', error);
+                toast.error('Failed to load users. Please try again later.');
             } finally {
                 setLoading(false);
                 setTimeout(() => setAnimate(true), 100);
@@ -57,13 +37,99 @@ const UserManagement = () => {
         fetchUsers();
     }, []);
 
-    const handleAddUser = (userData) => {
-        console.log('Adding user:', userData);
-        // In a real app, this would call an API endpoint
-        setShowModal(false);
+    const handleAddUser = async (userData) => {
+        try {
+            setLoading(true);
+            const response = await userService.createUser(userData);
+            if (response.status === 'success') {
+                toast.success('User created successfully!');
+                // Add the new user to the list
+                setUsers([...users, response.data.user]);
+            }
+        } catch (error) {
+            console.error('Error creating user:', error);
+            toast.error(error.response?.data?.message || 'Failed to create user');
+        } finally {
+            setLoading(false);
+            setShowModal(false);
+        }
     };
 
-    if (loading) {
+    const handleUpdateUser = async (userData) => {
+        try {
+            setLoading(true);
+            const response = await userService.updateUser(selectedUser.id, userData);
+            if (response.status === 'success') {
+                toast.success('User updated successfully!');
+                // Update the user in the list
+                setUsers(users.map(user => 
+                    user.id === selectedUser.id ? response.data.user : user
+                ));
+            }
+        } catch (error) {
+            console.error('Error updating user:', error);
+            toast.error(error.response?.data?.message || 'Failed to update user');
+        } finally {
+            setLoading(false);
+            setShowModal(false);
+            setSelectedUser(null);
+            setIsEditMode(false);
+        }
+    };
+
+    const handleDeleteUser = async (userId) => {
+        if (window.confirm('Are you sure you want to delete this user?')) {
+            try {
+                setLoading(true);
+                await userService.deleteUser(userId);
+                toast.success('User deleted successfully!');
+                // Remove the user from the list
+                setUsers(users.filter(user => user.id !== userId));
+            } catch (error) {
+                console.error('Error deleting user:', error);
+                toast.error(error.response?.data?.message || 'Failed to delete user');
+            } finally {
+                setLoading(false);
+            }
+        }
+    };
+
+    const handleEditClick = (user) => {
+        setSelectedUser(user);
+        setIsEditMode(true);
+        setShowModal(true);
+    };
+
+    const handleToggleStatus = async (user) => {
+        try {
+            setLoading(true);
+            // In a real implementation, this would call an API endpoint to toggle the user status
+            const updatedUser = await userService.updateUser(user.id, { 
+                active: !user.active 
+            });
+            
+            if (updatedUser.status === 'success') {
+                toast.success(`User ${user.active ? 'deactivated' : 'activated'} successfully`);
+                // Update the user in the list
+                setUsers(users.map(u => 
+                    u.id === user.id ? { ...u, active: !u.active } : u
+                ));
+            }
+        } catch (error) {
+            console.error('Error updating user status:', error);
+            toast.error(error.response?.data?.message || 'Failed to update user status');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const closeModal = () => {
+        setShowModal(false);
+        setSelectedUser(null);
+        setIsEditMode(false);
+    };
+
+    if (loading && !users.length) {
         return <Loading message="Loading users" />;
     }
 
@@ -107,7 +173,7 @@ const UserManagement = () => {
                             <tbody className="divide-y divide-gray-700">
                                 {users.map((user, index) => (
                                     <tr
-                                        key={user.id}
+                                        key={user.id || user._id}
                                         className="hover:bg-gray-800/50 transition-colors duration-150"
                                         style={{ animationDelay: `${index * 100}ms` }}
                                     >
@@ -138,18 +204,24 @@ const UserManagement = () => {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                                ${user.active
+                                                ${user.active !== false
                                                     ? 'bg-green-900/50 text-green-300 border border-green-500/30'
                                                     : 'bg-red-900/50 text-red-300 border border-red-500/30'}`}>
-                                                {user.active ? 'Active' : 'Inactive'}
+                                                {user.active !== false ? 'Active' : 'Inactive'}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <button className="text-indigo-400 hover:text-indigo-300 hover:underline transition-colors duration-150 mr-3">
+                                            <button 
+                                                onClick={() => handleEditClick(user)}
+                                                className="text-indigo-400 hover:text-indigo-300 hover:underline transition-colors duration-150 mr-3"
+                                            >
                                                 Edit
                                             </button>
-                                            <button className={`${user.active ? 'text-red-400 hover:text-red-300' : 'text-green-400 hover:text-green-300'} hover:underline transition-colors duration-150`}>
-                                                {user.active ? 'Deactivate' : 'Activate'}
+                                            <button 
+                                                onClick={() => handleToggleStatus(user)}
+                                                className={`${user.active !== false ? 'text-red-400 hover:text-red-300' : 'text-green-400 hover:text-green-300'} hover:underline transition-colors duration-150`}
+                                            >
+                                                {user.active !== false ? 'Deactivate' : 'Activate'}
                                             </button>
                                         </td>
                                     </tr>
@@ -162,13 +234,15 @@ const UserManagement = () => {
 
             <Modal
                 isOpen={showModal}
-                onClose={() => setShowModal(false)}
-                title="Add New User"
+                onClose={closeModal}
+                title={isEditMode ? "Edit User" : "Add New User"}
                 size="md"
             >
                 <UserForm
-                    onSubmit={handleAddUser}
-                    onCancel={() => setShowModal(false)}
+                    onSubmit={isEditMode ? handleUpdateUser : handleAddUser}
+                    onCancel={closeModal}
+                    initialData={selectedUser}
+                    isEditMode={isEditMode}
                 />
             </Modal>
         </div>
